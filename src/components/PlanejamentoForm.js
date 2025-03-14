@@ -261,51 +261,70 @@ const PlanejamentoForm = ({
                     <Box
                       sx={{
                         display: "flex",
-                        alignItems: "center",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "flex-start", sm: "center" },
                         width: "100%",
                       }}
                     >
-                      <Typography sx={{ flexGrow: 1, mr: 2 }}>
+                      <Typography
+                        sx={{
+                          flexGrow: 1,
+                          mr: 2,
+                          mb: { xs: 1, sm: 0 },
+                        }}
+                      >
                         {cat.nome}
                       </Typography>
 
                       {/* Adicionar este seletor de tipo */}
-                      <Select
-                        value={cat.tipo || "saida"}
-                        onChange={(e) => {
-                          const newCategorias = [...categorias];
-                          newCategorias[index].tipo = e.target.value;
-                          setCategorias(newCategorias);
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: { xs: "100%", sm: "auto" },
                         }}
-                        size="small"
-                        sx={{ mr: 2, minWidth: 100 }}
                       >
-                        <MenuItem value="entrada">Entrada</MenuItem>
-                        <MenuItem value="saida">Saída</MenuItem>
-                      </Select>
+                        <Select
+                          value={cat.tipo || "saida"}
+                          onChange={(e) => {
+                            const newCategorias = [...categorias];
+                            newCategorias[index].tipo = e.target.value;
+                            setCategorias(newCategorias);
+                          }}
+                          size="small"
+                          sx={{ mr: 2, minWidth: { xs: 90, sm: 100 } }}
+                        >
+                          <MenuItem value="entrada">Entrada</MenuItem>
+                          <MenuItem value="saida">Saída</MenuItem>
+                        </Select>
 
-                      <TextField
-                        label="Valor (R$)"
-                        type="number"
-                        size="small"
-                        value={cat.valorPlanejado}
-                        onChange={(e) =>
-                          handleChangeValor(index, e.target.value)
-                        }
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">R$</InputAdornment>
-                          ),
-                        }}
-                        sx={{ width: "40%" }}
-                      />
-                      <IconButton
-                        onClick={() => handleRemoveCategoria(index)}
-                        color="error"
-                        size="small"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        <TextField
+                          label="Valor (R$)"
+                          type="number"
+                          size="small"
+                          value={cat.valorPlanejado}
+                          onChange={(e) =>
+                            handleChangeValor(index, e.target.value)
+                          }
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                R$
+                              </InputAdornment>
+                            ),
+                          }}
+                          sx={{
+                            width: { xs: "60%", sm: "40%" },
+                          }}
+                        />
+                        <IconButton
+                          onClick={() => handleRemoveCategoria(index)}
+                          color="error"
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
                     </Box>
                   </ListItem>
                   {index < categorias.length - 1 && <Divider />}
@@ -313,20 +332,32 @@ const PlanejamentoForm = ({
               ))}
             </List>
 
-            <Box sx={{ display: "flex", mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                mb: 3,
+                flexDirection: { xs: "column", sm: "row" },
+              }}
+            >
               <TextField
                 label="Nova categoria"
                 fullWidth
                 size="small"
                 value={novaCategoria}
                 onChange={(e) => setNovaCategoria(e.target.value)}
-                sx={{ mr: 1 }}
+                sx={{
+                  mr: { xs: 0, sm: 1 },
+                  mb: { xs: 1, sm: 0 },
+                }}
               />
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleAddCategoria}
                 startIcon={<AddIcon />}
+                sx={{
+                  width: { xs: "100%", sm: "auto" },
+                }}
               >
                 Adicionar
               </Button>
