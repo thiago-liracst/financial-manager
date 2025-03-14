@@ -2,60 +2,48 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
-  Button,
-  Card,
-  CardContent,
-  TextField,
+  Container,
   Typography,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+  Paper,
+  styled,
+  Link,
   IconButton,
   InputAdornment,
-  CircularProgress,
-  Stack,
-  Container,
-  styled,
 } from "@mui/material";
-import {
-  FaEye,
-  FaEyeSlash,
-  FaGoogle,
-  FaApple,
-  FaMicrosoft,
-} from "react-icons/fa";
+import { useTheme } from "@mui/material/styles";
+import LoginIcon from "@mui/icons-material/Login";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  maxWidth: 450,
-  width: "100%",
-  backdropFilter: "blur(10px)",
-  backgroundColor: "rgba(255, 255, 255, 0.9)",
+const FormContainer = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
   borderRadius: 16,
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+  maxWidth: 400,
+  margin: "40px auto",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+  background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: 25,
-  padding: "12px 24px",
-  textTransform: "none",
-  fontSize: "1rem",
-  transition: "all 0.3s ease-in-out",
+  marginTop: theme.spacing(4),
+  padding: theme.spacing(1.5),
+  borderRadius: 8,
+  transition: "all 0.3s ease",
+  background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
   "&:hover": {
     transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    boxShadow: theme.shadows[4],
   },
 }));
 
-const GradientBox = styled(Box)({
-  minHeight: "100vh",
-  background: "linear-gradient(135deg, #0061ff 0%, #60efff 100%)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "20px",
-});
-
 const Login = () => {
+  const theme = useTheme();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -86,114 +74,106 @@ const Login = () => {
   };
 
   return (
-    <GradientBox>
-      <Container maxWidth="sm">
-        <StyledCard>
-          <CardContent sx={{ p: 4 }}>
-            <Typography
-              variant="h4"
-              align="center"
-              gutterBottom
-              sx={{ fontWeight: 600 }}
+    <Container>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        }}
+      >
+        <FormContainer elevation={3}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              fontWeight: "bold",
+              color: theme.palette.primary.main,
+              textAlign: "center",
+              mb: 4,
+            }}
+          >
+            Bem-vindo de Volta
+          </Typography>
+
+          {erro && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {erro}
+            </Alert>
+          )}
+
+          <form onSubmit={handleLogin}>
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+              margin="normal"
+              required
+              variant="outlined"
+              error={erro && !validateEmail(email)}
+              helperText={
+                erro && !validateEmail(email)
+                  ? "Por favor, insira um email válido"
+                  : ""
+              }
+            />
+
+            <TextField
+              label="Senha"
+              type={showPassword ? "text" : "password"}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              fullWidth
+              margin="normal"
+              required
+              variant="outlined"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <StyledButton
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              disabled={loading}
+              startIcon={
+                loading ? <CircularProgress size={20} /> : <LoginIcon />
+              }
             >
-              Bem-vindo de Volta
-            </Typography>
+              {loading ? "Entrando..." : "Entrar"}
+            </StyledButton>
 
-            <form onSubmit={handleLogin}>
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  error={erro && !validateEmail(email)}
-                  helperText={
-                    erro && !validateEmail(email)
-                      ? "Por favor, insira um email válido"
-                      : ""
-                  }
-                  variant="outlined"
-                  required
-                />
-
-                <TextField
-                  fullWidth
-                  label="Senha"
-                  type={showPassword ? "text" : "password"}
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  error={!!erro}
-                  helperText={erro ? erro : ""}
-                  required
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <FaEyeSlash /> : <FaEye />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <StyledButton
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={loading}
-                  sx={{ mt: 2 }}
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Não tem uma conta?{" "}
+                <Link
+                  component={RouterLink}
+                  to="/signup"
+                  underline="hover"
+                  sx={{ fontWeight: "bold" }}
                 >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    "Entrar"
-                  )}
-                </StyledButton>
-
-                <Typography
-                  variant="body2"
-                  align="center"
-                  sx={{ cursor: "pointer", color: "primary.main" }}
-                >
-                  Esqueceu a senha?
-                </Typography>
-
-                <Stack direction="row" spacing={2} justifyContent="center">
-                  <IconButton sx={{ backgroundColor: "#DB4437" }}>
-                    <FaGoogle color="white" />
-                  </IconButton>
-                  <IconButton sx={{ backgroundColor: "#000000" }}>
-                    <FaApple color="white" />
-                  </IconButton>
-                  <IconButton sx={{ backgroundColor: "#2F2F2F" }}>
-                    <FaMicrosoft color="white" />
-                  </IconButton>
-                </Stack>
-
-                <Typography align="center">
-                  Não tem uma conta?{" "}
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "primary.main",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                    }}
-                    onClick={() => navigate("/signup")}
-                  >
-                    Cadastre-se
-                  </Typography>
-                </Typography>
-              </Stack>
-            </form>
-          </CardContent>
-        </StyledCard>
-      </Container>
-    </GradientBox>
+                  Cadastre-se
+                </Link>
+              </Typography>
+            </Box>
+          </form>
+        </FormContainer>
+      </Box>
+    </Container>
   );
 };
 

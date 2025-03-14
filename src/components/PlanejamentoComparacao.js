@@ -30,6 +30,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import PlanejamentoForm from "./PlanejamentoForm";
 
 const PlanejamentoComparacao = ({
@@ -45,6 +46,14 @@ const PlanejamentoComparacao = ({
     ? dadosGrafico.pizza
     : [];
 
+  // Separar as categorias por tipo
+  const categoriasSaida = comparacaoGastos.filter(
+    (item) => item.tipo === "saida"
+  );
+  const categoriasEntrada = comparacaoGastos.filter(
+    (item) => item.tipo === "entrada"
+  );
+
   // Cores para os gráficos
   const COLORS = [
     theme.palette.primary.main,
@@ -59,27 +68,34 @@ const PlanejamentoComparacao = ({
     "#0088FE",
   ];
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status, tipo) => {
     switch (status) {
       case "ok":
         return <CheckCircleIcon fontSize="small" color="success" />;
       case "alerta":
         return <WarningIcon fontSize="small" color="warning" />;
       case "ultrapassado":
-        return <ErrorIcon fontSize="small" color="error" />;
+        return (
+          <ErrorIcon
+            fontSize="small"
+            color={tipo === "entrada" ? "warning" : "error"}
+          />
+        );
       default:
         return null;
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, tipo) => {
     switch (status) {
       case "ok":
         return theme.palette.success.main;
       case "alerta":
         return theme.palette.warning.main;
       case "ultrapassado":
-        return theme.palette.error.main;
+        return tipo === "entrada"
+          ? theme.palette.warning.main
+          : theme.palette.error.main;
       default:
         return theme.palette.grey[500];
     }
@@ -100,6 +116,49 @@ const PlanejamentoComparacao = ({
     if (onPlanejamentoUpdate) {
       onPlanejamentoUpdate();
     }
+  };
+
+  // Renderizar progresso para um item específico
+  const renderProgressItem = (item, index) => {
+    // Determinar se o progresso deve ser invertido para entradas
+    // Para entradas, 100% ou mais é bom; para saídas, menos de 100% é bom
+    const progressValue = Math.min(item.percentualGasto, 100);
+
+    return (
+      <Box key={index} sx={{ mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 0.5,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {getStatusIcon(item.status, item.tipo)}
+            <Typography variant="body2" sx={{ ml: 0.5 }}>
+              {item.nome}
+            </Typography>
+          </Box>
+          <Typography variant="body2" fontWeight="medium">
+            R$ {item.valorGasto.toFixed(2)} / R${" "}
+            {item.valorPlanejado.toFixed(2)}
+          </Typography>
+        </Box>
+        <LinearProgress
+          variant="determinate"
+          value={progressValue}
+          sx={{
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: theme.palette.grey[200],
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: getStatusColor(item.status, item.tipo),
+            },
+          }}
+        />
+      </Box>
+    );
   };
 
   if (!comparacaoGastos || comparacaoGastos.length === 0) {
@@ -160,7 +219,7 @@ const PlanejamentoComparacao = ({
               sx={{ display: "flex", alignItems: "center" }}
             >
               Planejamento vs. Realizado
-              <Tooltip title="Comparação entre os valores planejados e os gastos reais do mês.">
+              <Tooltip title="Comparação entre os valores planejados e os gastos/receitas reais do mês.">
                 <InfoIcon fontSize="small" sx={{ ml: 1, opacity: 0.7 }} />
               </Tooltip>
             </Typography>
@@ -176,45 +235,39 @@ const PlanejamentoComparacao = ({
           </Box>
 
           <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Progresso por Categoria
-            </Typography>
+            {/* Seção de Gastos (Saídas) */}
+            {categoriasSaida.length > 0 && (
+              <>
+                {categoriasSaida.map((item, index) =>
+                  renderProgressItem(item, `saida-${index}`)
+                )}
+              </>
+            )}
 
-            {comparacaoGastos.map((item, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
+            {/* Seção de Receitas (Entradas) */}
+            {categoriasEntrada.length > 0 && (
+              <>
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    mb: 0.5,
+                    mb: 1,
+                    mt: 2,
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    {getStatusIcon(item.status)}
-                    <Typography variant="body2" sx={{ ml: 0.5 }}>
-                      {item.nome}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" fontWeight="medium">
-                    R$ {item.valorGasto.toFixed(2)} / R${" "}
-                    {item.valorPlanejado.toFixed(2)}
+                  <ArrowUpwardIcon
+                    fontSize="small"
+                    sx={{ mr: 1, color: theme.palette.success.main }}
+                  />
+                  <Typography variant="subtitle2" color="success">
+                    Progresso de Receitas por Categoria
                   </Typography>
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(item.percentualGasto, 100)}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: theme.palette.grey[200],
-                    "& .MuiLinearProgress-bar": {
-                      backgroundColor: getStatusColor(item.status),
-                    },
-                  }}
-                />
-              </Box>
-            ))}
+                {categoriasEntrada.map((item, index) =>
+                  renderProgressItem(item, `entrada-${index}`)
+                )}
+              </>
+            )}
           </Box>
 
           <Divider sx={{ my: 3 }} />

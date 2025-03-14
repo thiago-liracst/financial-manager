@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import {
-  Box,
   Container,
   Typography,
   TextField,
@@ -62,15 +61,21 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
   const [error, setError] = useState("");
 
   const categorias = [
-    "Alimentação",
-    "Transporte",
-    "Moradia",
+    "Família",
+    "Moto",
+    "Custos Gerais",
+    "Aluguel",
     "Saúde",
-    "Educação",
+    "Viagem",
     "Lazer",
-    "Vestuário",
-    "Investimentos",
-    "Salário",
+    "Gasolina",
+    "Imposto",
+    "Fatura",
+    "Carro",
+    "Investimento",
+    "Salário 1",
+    "Salário 2",
+    "Extra",
     "Outros",
   ];
 

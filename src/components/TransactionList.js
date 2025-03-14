@@ -6,7 +6,6 @@ import {
   Grid,
   Avatar,
   Box,
-  Divider,
   Chip,
   styled,
   IconButton,
@@ -34,7 +33,6 @@ import {
   FaMedkit,
   FaGraduationCap,
   FaGamepad,
-  FaQuestion,
 } from "react-icons/fa";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -70,15 +68,21 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
 
   // Categorias disponíveis
   const categorias = [
-    "Alimentação",
-    "Transporte",
-    "Moradia",
+    "Família",
+    "Moto",
+    "Custos Gerais",
+    "Aluguel",
     "Saúde",
-    "Educação",
+    "Viagem",
     "Lazer",
-    "Vestuário",
-    "Investimentos",
-    "Salário",
+    "Gasolina",
+    "Imposto",
+    "Fatura",
+    "Carro",
+    "Investimento",
+    "Salário 1",
+    "Salário 2",
+    "Extra",
     "Outros",
   ];
 
