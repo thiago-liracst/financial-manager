@@ -10,6 +10,7 @@ import BalanceCard from "../components/dashboard/BalanceCard";
 import TabNavigation from "../components/dashboard/TabNavigation";
 import TransactionPanel from "../components/dashboard/TransactionPanel";
 import PlanejamentoPanel from "../components/dashboard/PlanejamentoPanel";
+import AnalisesFinanceiras from "../components/dashboard/AnalisesFinanceiras"; // Nova importação
 import AddButton from "../components/dashboard/AddButton";
 
 const DashboardContainer = styled(Box)(({ theme }) => ({
@@ -35,7 +36,7 @@ const Dashboard = () => {
     currentMonth,
     isMonthClosed,
     initialBalance,
-    monthClosingData // Passando monthClosingData como parâmetro
+    monthClosingData
   );
   const { comparacaoGastos, dadosGrafico, handlePlanejamentoUpdated } =
     usePlanejamento(user, currentMonth, transactions);
@@ -46,6 +47,39 @@ const Dashboard = () => {
 
   const toggleForm = () => {
     setShowForm(!showForm);
+  };
+
+  // Renderização condicional baseada na aba ativa
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 0:
+        return (
+          <TransactionPanel
+            user={user}
+            transactions={transactions}
+            isMonthClosed={isMonthClosed}
+            currentMonth={currentMonth}
+            showForm={showForm}
+            toggleForm={toggleForm}
+            balance={balance}
+            onMonthClosed={handleMonthClosed}
+          />
+        );
+      case 1:
+        return (
+          <PlanejamentoPanel
+            userId={user?.uid}
+            mesReferencia={currentMonth}
+            comparacaoGastos={comparacaoGastos}
+            dadosGrafico={dadosGrafico}
+            onPlanejamentoUpdate={handlePlanejamentoUpdated}
+          />
+        );
+      case 2:
+        return <AnalisesFinanceiras user={user} />; // Substituído por AnalisesFinanceiras
+      default:
+        return null;
+    }
   };
 
   return (
@@ -70,26 +104,7 @@ const Dashboard = () => {
           onChange={(newValue) => setActiveTab(newValue)}
         />
 
-        {activeTab === 0 ? (
-          <TransactionPanel
-            user={user}
-            transactions={transactions}
-            isMonthClosed={isMonthClosed}
-            currentMonth={currentMonth}
-            showForm={showForm}
-            toggleForm={toggleForm}
-            balance={balance}
-            onMonthClosed={handleMonthClosed}
-          />
-        ) : (
-          <PlanejamentoPanel
-            userId={user?.uid}
-            mesReferencia={currentMonth}
-            comparacaoGastos={comparacaoGastos}
-            dadosGrafico={dadosGrafico}
-            onPlanejamentoUpdate={handlePlanejamentoUpdated}
-          />
-        )}
+        {renderTabContent()}
 
         {!isMonthClosed && activeTab === 0 && (
           <AddButton onClick={toggleForm} />

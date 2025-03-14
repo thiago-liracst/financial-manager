@@ -1,0 +1,114 @@
+# Sistema de Gerenciamento Financeiro Pessoal - Descritivo
+
+## Funcionalidades
+
+### Funcionalidades Existentes
+1. Registro de transações (entradas e saídas)
+2. Visualização de transações por mês
+3. Fechamento mensal (com saldo final transferido para o mês seguinte)
+4. Planejamento orçamentário por categoria
+5. Visualização de tendências de gastos
+
+### Novas Funcionalidades
+6. Previsão de gastos para os próximos meses com base em histórico
+7. Análise de sazonalidade para identificar padrões nos gastos por categoria
+
+## Estrutura de Arquivos
+
+### Páginas
+- `/src/pages/Dashboard.js` - Página principal do aplicativo
+
+### Componentes
+- `/src/components/dashboard/`
+  - `Header.js` - Cabeçalho com seletor de mês e botão de logout
+  - `BalanceCard.js` - Exibe o saldo atual
+  - `TabNavigation.js` - Navegação por abas (Transações, Planejamento, Análises)
+  - `TransactionPanel.js` - Painel de transações
+  - `PlanejamentoPanel.js` - Painel de planejamento orçamentário
+  - `TendenciasGastos.js` - Visualização de tendências de gastos
+  - `PrevisaoGastos.js` - Previsão de gastos futuros
+  - `SazonalidadeGastos.js` - Análise de padrões sazonais de gastos
+  - `SeletorAnalise.js` - Navegação entre diferentes tipos de análises
+  - `AnalisesFinanceiras.js` - Componente que gerencia as diferentes visualizações analíticas
+  - `AddButton.js` - Botão flutuante para adicionar transações
+
+- `/src/components/`
+  - `GraficoLinha.js` - Componente reutilizável de gráfico de linha
+  - `SeletorPeriodo.js` - Componente para selecionar período de visualização
+
+### Hooks Personalizados
+- `/src/hooks/`
+  - `useAuth.js` - Gerenciamento de autenticação
+  - `useMonthStatus.js` - Controle de status do mês (aberto/fechado)
+  - `useTransactions.js` - Busca e gerenciamento de transações
+  - `usePlanejamento.js` - Gerenciamento do planejamento orçamentário
+  - `useTendenciasGastos.js` - Processamento de tendências de gastos
+  - `usePrevisaoGastos.js` - Processamento de dados para previsão de gastos
+  - `useSazonalidadeGastos.js` - Processamento de dados para análise de sazonalidade
+
+## Fluxo de Navegação
+1. Usuário acessa o Dashboard após autenticação
+2. O Dashboard exibe:
+   - Cabeçalho com seletor de mês
+   - Card de saldo atual
+   - Abas para navegar entre funcionalidades
+3. Na aba "Transações":
+   - Lista de transações do mês
+   - Função para adicionar novas transações
+   - Opção para fechar o mês
+4. Na aba "Planejamento":
+   - Definição de orçamentos por categoria
+   - Comparativo entre planejado e realizado
+5. Na aba "Análises":
+   - Seletor para escolher entre três tipos de análise:
+     - Tendências: visualização de gastos ao longo do tempo
+     - Previsão: projeção de gastos para os próximos 3 meses
+     - Sazonalidade: identificação de padrões sazonais nos gastos
+
+## Detalhamento das Novas Funcionalidades
+
+### Previsão de Gastos
+- Utiliza o histórico de transações para projetar gastos nos próximos 3 meses
+- O usuário pode ajustar o período de histórico utilizado (3, 6 ou 12 meses)
+- Exibe previsão global ou por categoria selecionada
+- Visualização através de gráfico de linha e cards com valores previstos
+
+### Análise de Sazonalidade
+- Identifica padrões sazonais nas categorias de gastos ao longo do ano
+- O usuário pode escolher o período de análise (1, 2 ou 3 anos)
+- Destaca categorias com maior variação sazonal
+- Indica meses com gastos acima da média para cada categoria
+- Exibe índice de sazonalidade (relação entre gasto mensal e média anual)
+
+## Tecnologias Utilizadas
+- React JS para interface de usuário
+- Material-UI para componentes visuais
+- Firebase (Firestore) para banco de dados
+- Recharts para visualização de gráficos
+
+## Integrações
+- Firebase Authentication para autenticação de usuários
+- Firebase Firestore para armazenamento de dados
+
+## Modelos de Dados
+- `transactions`: Armazena transações (entradas/saídas)
+  - `userId`: ID do usuário
+  - `mesReferencia`: Mês de referência (formato YYYY-MM)
+  - `data`: Data da transação
+  - `descricao`: Descrição
+  - `valor`: Valor
+  - `tipo`: Tipo (entrada ou saída)
+  - `categoria`: Categoria (para saídas)
+
+- `monthStatus`: Armazena status de meses (aberto/fechado)
+  - `userId`: ID do usuário
+  - `mesReferencia`: Mês de referência (formato YYYY-MM)
+  - `fechado`: Status do mês
+  - `saldoInicial`: Saldo inicial do mês
+  - `saldoFinal`: Saldo final após fechamento
+
+- `planejamento`: Armazena planejamento orçamentário
+  - `userId`: ID do usuário
+  - `mesReferencia`: Mês de referência (formato YYYY-MM)
+  - `categoria`: Categoria de gasto
+  - `valorPlanejado`: Valor planejado para a categoria
