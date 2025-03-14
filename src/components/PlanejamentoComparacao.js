@@ -161,6 +161,53 @@ const PlanejamentoComparacao = ({
     );
   };
 
+  // Renderizar os indicadores de legenda personalizada para o gráfico de pizza
+  const renderCustomLegend = () => {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          ml: 2,
+          fontSize: 12,
+        }}
+      >
+        {pizzaData.map((entry, index) => (
+          <Box
+            key={`legend-item-${index}`}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                backgroundColor: COLORS[index % COLORS.length],
+                borderRadius: 1,
+                mr: 1,
+              }}
+            />
+            <Typography variant="caption" sx={{ mr: 1 }}>
+              {entry.name}:
+            </Typography>
+            <Typography variant="caption" fontWeight="medium">
+              R$ {entry.value.toFixed(2)} (
+              {(
+                (entry.value /
+                  pizzaData.reduce((sum, item) => sum + item.value, 0)) *
+                100
+              ).toFixed(1)}
+              %)
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    );
+  };
+
   if (!comparacaoGastos || comparacaoGastos.length === 0) {
     return (
       <Card sx={{ mb: 3, borderRadius: 3 }}>
@@ -277,33 +324,35 @@ const PlanejamentoComparacao = ({
               <Typography variant="subtitle2" gutterBottom align="center">
                 Distribuição de Gastos
               </Typography>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={pizzaData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {pizzaData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip
-                    formatter={(value) => `R$ ${value.toFixed(2)}`}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <Box sx={{ display: "flex", alignItems: "center", height: 200 }}>
+                <ResponsiveContainer width="60%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={pizzaData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={false}
+                    >
+                      {pizzaData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      formatter={(value) => `R$ ${value.toFixed(2)}`}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Legenda personalizada na lateral */}
+                {renderCustomLegend()}
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Typography variant="subtitle2" gutterBottom align="center">
@@ -327,7 +376,7 @@ const PlanejamentoComparacao = ({
                     fill={theme.palette.primary.main}
                   />
                   <Bar
-                    name="Gasto"
+                    name="Real"
                     dataKey="gasto"
                     fill={theme.palette.secondary.main}
                   />

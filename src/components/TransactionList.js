@@ -33,6 +33,19 @@ import {
   FaMedkit,
   FaGraduationCap,
   FaGamepad,
+  FaUsers, // Família
+  FaMotorcycle, // Moto
+  FaFileInvoiceDollar, // Custos Gerais
+  FaKey, // Aluguel
+  FaPlane, // Viagem
+  FaGasPump, // Gasolina
+  FaLandmark, // Imposto
+  FaCreditCard, // Fatura
+  FaCarAlt, // Carro (alternativa ao FaCar)
+  FaChartLine, // Investimento
+  FaBriefcase, // Salários
+  FaGift, // Extra
+  FaEllipsisH, // Outros
 } from "react-icons/fa";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -89,6 +102,43 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
   const getCategoryIcon = (categoria) => {
     // Mapeamento de categoria para ícones
     switch (categoria?.toLowerCase()) {
+      case "família":
+      case "familia":
+        return <FaUsers />;
+      case "moto":
+        return <FaMotorcycle />;
+      case "custos gerais":
+        return <FaFileInvoiceDollar />;
+      case "aluguel":
+        return <FaKey />;
+      case "saúde":
+      case "saude":
+        return <FaMedkit />;
+      case "viagem":
+        return <FaPlane />;
+      case "lazer":
+        return <FaGamepad />;
+      case "gasolina":
+        return <FaGasPump />;
+      case "imposto":
+        return <FaLandmark />;
+      case "fatura":
+        return <FaCreditCard />;
+      case "carro":
+        return <FaCarAlt />;
+      case "investimento":
+        return <FaChartLine />;
+      case "salário 1":
+      case "salario 1":
+        return <FaBriefcase />;
+      case "salário 2":
+      case "salario 2":
+        return <FaBriefcase />;
+      case "extra":
+        return <FaGift />;
+      case "outros":
+        return <FaEllipsisH />;
+      // Categorias originais
       case "alimentação":
       case "alimentacao":
         return <FaUtensils />;
@@ -98,14 +148,9 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
         return <FaHome />;
       case "compras":
         return <FaShoppingCart />;
-      case "saúde":
-      case "saude":
-        return <FaMedkit />;
       case "educação":
       case "educacao":
         return <FaGraduationCap />;
-      case "lazer":
-        return <FaGamepad />;
       case "entrada":
         return <FaMoneyBillWave />;
       default:
