@@ -1,8 +1,8 @@
 {
   "name": "financial-manager",
   "version": "0.1.0",
-  "private": true,
   "homepage": "https://thiago-liracst.github.io/financial-manager",
+  "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",

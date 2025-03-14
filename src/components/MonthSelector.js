@@ -7,10 +7,9 @@ import {
   FormControl,
   InputLabel,
   Stack,
-  Typography,
   Chip,
 } from "@mui/material";
-import { format, subMonths, startOfMonth } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const MonthSelector = ({ onSelectMonth, currentMonth, isMonthClosed }) => {
