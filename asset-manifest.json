@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/financial-manager/static/js/main.c03944df.js",
+    "index.html": "/financial-manager/index.html",
+    "main.c03944df.js.map": "/financial-manager/static/js/main.c03944df.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.c03944df.js"
+  ]
+}
