@@ -82,7 +82,7 @@ export const compararGastosPlanejados = (
     // Determinar o status com base no percentual e no tipo
     let status;
     if (tipo === "saida") {
-      if (percentualGasto < 100) status = "ok";
+      if (percentualGasto <= 100) status = "ok";
       //else if (percentualGasto <= 100) status = "alerta";
       else status = "ultrapassado";
     } else {
