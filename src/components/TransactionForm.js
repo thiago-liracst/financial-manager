@@ -72,6 +72,7 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
     "Imposto",
     "Fatura",
     "Carro",
+    "Casa Nova",
     "Investimento",
     "Salário 1",
     "Salário 2",
