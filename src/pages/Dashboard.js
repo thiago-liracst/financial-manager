@@ -15,7 +15,7 @@ import AddButton from "../components/dashboard/AddButton";
 
 const DashboardContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
-  backgroundColor: "#f5f5f5",
+  backgroundColor: "#ffffffff",
   paddingTop: theme.spacing(2),
   paddingBottom: theme.spacing(10),
 }));
