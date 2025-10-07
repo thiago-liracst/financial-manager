@@ -1,5 +1,5 @@
 // src/components/TransactionForm.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import {
@@ -17,6 +17,7 @@ import {
   styled,
   Alert,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
@@ -24,6 +25,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import CloseIcon from "@mui/icons-material/Close";
+import { getPlanejamentoMensal } from "../services/PlanejamentoService";
 
 const FormContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -59,8 +61,11 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
   const [tipo, setTipo] = useState("entrada");
   const [valor, setValor] = useState("");
   const [error, setError] = useState("");
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(true);
 
-  const categorias = [
+  // Categorias padrão caso não haja planejamento
+  const categoriasDefault = [
     "Família",
     "Moto",
     "Custos Gerais",
@@ -79,6 +84,66 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
     "Extra",
     "Outros",
   ];
+
+  // Buscar categorias do planejamento ao carregar o componente
+  useEffect(() => {
+    const buscarCategoriasPlanejamento = async () => {
+      try {
+        setLoadingCategorias(true);
+        const user = auth.currentUser;
+
+        if (!user || !mesReferencia) {
+          setCategorias(categoriasDefault);
+          setLoadingCategorias(false);
+          return;
+        }
+
+        // Buscar planejamento do mês
+        const planejamento = await getPlanejamentoMensal(
+          user.uid,
+          mesReferencia
+        );
+
+        if (
+          planejamento &&
+          planejamento.categorias &&
+          planejamento.categorias.length > 0
+        ) {
+          // Separar categorias por tipo
+          const categoriasEntrada = planejamento.categorias
+            .filter((cat) => cat.tipo === "entrada")
+            .map((cat) => cat.nome);
+
+          const categoriasSaida = planejamento.categorias
+            .filter((cat) => cat.tipo === "saida")
+            .map((cat) => cat.nome);
+
+          // Adicionar "Outros" se não existir
+          if (!categoriasSaida.includes("Outros")) {
+            categoriasSaida.push("Outros");
+          }
+          if (!categoriasEntrada.includes("Outros")) {
+            categoriasEntrada.push("Outros");
+          }
+
+          setCategorias({
+            entrada: categoriasEntrada,
+            saida: categoriasSaida,
+          });
+        } else {
+          // Se não houver planejamento, usar categorias padrão
+          setCategorias(categoriasDefault);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar categorias do planejamento:", error);
+        setCategorias(categoriasDefault);
+      } finally {
+        setLoadingCategorias(false);
+      }
+    };
+
+    buscarCategoriasPlanejamento();
+  }, [mesReferencia]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,8 +198,29 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
   const handleTipoChange = (event, newTipo) => {
     if (newTipo !== null) {
       setTipo(newTipo);
+      // Limpar categoria ao mudar o tipo
+      setCategoria("");
     }
   };
+
+  // Obter lista de categorias baseada no tipo selecionado
+  const getCategoriasParaTipo = () => {
+    if (loadingCategorias) {
+      return [];
+    }
+
+    // Se categorias for um objeto com entrada/saida
+    if (typeof categorias === "object" && !Array.isArray(categorias)) {
+      return tipo === "entrada"
+        ? categorias.entrada || []
+        : categorias.saida || [];
+    }
+
+    // Se for array (categorias padrão)
+    return categorias;
+  };
+
+  const categoriasDisponiveis = getCategoriasParaTipo();
 
   return (
     <Container>
@@ -235,20 +321,36 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
             InputLabelProps={{ shrink: true }}
           />
 
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" disabled={loadingCategorias}>
             <InputLabel>Categoria</InputLabel>
             <Select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
               required
             >
-              {categorias.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
+              {loadingCategorias ? (
+                <MenuItem disabled>
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  Carregando categorias...
                 </MenuItem>
-              ))}
+              ) : categoriasDisponiveis.length > 0 ? (
+                categoriasDisponiveis.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>Nenhuma categoria disponível</MenuItem>
+              )}
             </Select>
           </FormControl>
+
+          {!loadingCategorias && categoriasDisponiveis.length === 0 && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              Crie um planejamento para o mês para ter categorias
+              personalizadas.
+            </Alert>
+          )}
 
           <StyledButton
             type="submit"
@@ -256,6 +358,7 @@ const TransactionForm = ({ onClose, mesReferencia }) => {
             fullWidth
             size="large"
             startIcon={tipo === "entrada" ? <AddIcon /> : <RemoveIcon />}
+            disabled={loadingCategorias}
             sx={{
               backgroundColor: tipo === "entrada" ? "#4caf50" : "#f44336",
               "&:hover": {

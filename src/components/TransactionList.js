@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   FaShoppingCart,
@@ -33,25 +34,26 @@ import {
   FaMedkit,
   FaGraduationCap,
   FaGamepad,
-  FaUsers, // Família
-  FaMotorcycle, // Moto
-  FaFileInvoiceDollar, // Custos Gerais
-  FaKey, // Aluguel
-  FaPlane, // Viagem
-  FaGasPump, // Gasolina
-  FaLandmark, // Imposto
-  FaCreditCard, // Fatura
-  FaCarAlt, // Carro (alternativa ao FaCar)
-  FaChartLine, // Investimento
-  FaBriefcase, // Salários
-  FaGift, // Extra
-  FaEllipsisH, // Outros
+  FaUsers,
+  FaMotorcycle,
+  FaFileInvoiceDollar,
+  FaKey,
+  FaPlane,
+  FaGasPump,
+  FaLandmark,
+  FaCreditCard,
+  FaCarAlt,
+  FaChartLine,
+  FaBriefcase,
+  FaGift,
+  FaEllipsisH,
 } from "react-icons/fa";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+import { getPlanejamentoMensal } from "../services/PlanejamentoService";
 
 const TransactionCard = styled(Card)(({ theme }) => ({
   borderRadius: 12,
@@ -69,6 +71,8 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [error, setError] = useState("");
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
   // Estado para cada campo do formulário de edição
   const [formData, setFormData] = useState({
@@ -79,8 +83,8 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
     valor: "",
   });
 
-  // Categorias disponíveis
-  const categorias = [
+  // Categorias padrão
+  const categoriasDefault = [
     "Família",
     "Moto",
     "Custos Gerais",
@@ -99,8 +103,65 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
     "Outros",
   ];
 
+  // Buscar categorias quando abrir o diálogo de edição
+  useEffect(() => {
+    const buscarCategoriasPlanejamento = async () => {
+      if (!openEditDialog || !editingTransaction) return;
+
+      try {
+        setLoadingCategorias(true);
+        const user = auth.currentUser;
+
+        if (!user || !editingTransaction.mesReferencia) {
+          setCategorias(categoriasDefault);
+          setLoadingCategorias(false);
+          return;
+        }
+
+        const planejamento = await getPlanejamentoMensal(
+          user.uid,
+          editingTransaction.mesReferencia
+        );
+
+        if (
+          planejamento &&
+          planejamento.categorias &&
+          planejamento.categorias.length > 0
+        ) {
+          const categoriasEntrada = planejamento.categorias
+            .filter((cat) => cat.tipo === "entrada")
+            .map((cat) => cat.nome);
+
+          const categoriasSaida = planejamento.categorias
+            .filter((cat) => cat.tipo === "saida")
+            .map((cat) => cat.nome);
+
+          if (!categoriasSaida.includes("Outros")) {
+            categoriasSaida.push("Outros");
+          }
+          if (!categoriasEntrada.includes("Outros")) {
+            categoriasEntrada.push("Outros");
+          }
+
+          setCategorias({
+            entrada: categoriasEntrada,
+            saida: categoriasSaida,
+          });
+        } else {
+          setCategorias(categoriasDefault);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar categorias do planejamento:", error);
+        setCategorias(categoriasDefault);
+      } finally {
+        setLoadingCategorias(false);
+      }
+    };
+
+    buscarCategoriasPlanejamento();
+  }, [openEditDialog, editingTransaction]);
+
   const getCategoryIcon = (categoria) => {
-    // Mapeamento de categoria para ícones
     switch (categoria?.toLowerCase()) {
       case "família":
       case "familia":
@@ -138,7 +199,6 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
         return <FaGift />;
       case "outros":
         return <FaEllipsisH />;
-      // Categorias originais
       case "alimentação":
       case "alimentacao":
         return <FaUtensils />;
@@ -162,21 +222,15 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
     }
   };
 
-  // Função auxiliar para formatar a data para display
   const formatDate = (data) => {
-    // Verifica se data é um objeto Timestamp do Firestore
     if (data && typeof data.toDate === "function") {
       return data.toDate().toLocaleDateString("pt-BR");
-    }
-    // Verifica se é uma string de data
-    else if (data && typeof data === "string") {
+    } else if (data && typeof data === "string") {
       return new Date(data).toLocaleDateString("pt-BR");
     }
-    // Fallback para casos não tratados
     return "Data não disponível";
   };
 
-  // Função para formatar a data para o input de tipo date
   const formatDateForInput = (data) => {
     if (data && typeof data.toDate === "function") {
       const date = data.toDate();
@@ -204,6 +258,7 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
     setOpenEditDialog(false);
     setEditingTransaction(null);
     setError("");
+    setCategorias([]);
   };
 
   const handleOpenDeleteDialog = (transaction) => {
@@ -229,13 +284,13 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
       setFormData({
         ...formData,
         tipo: newTipo,
+        categoria: "", // Limpar categoria ao mudar tipo
       });
     }
   };
 
   const handleUpdateTransaction = async () => {
     setError("");
-    // Validação
     if (
       !formData.data ||
       !formData.descricao ||
@@ -260,7 +315,6 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
         categoria: formData.categoria,
         tipo: formData.tipo,
         valor: valorNumber,
-        // Mantenha os outros campos inalterados
         userId: editingTransaction.userId,
         mesReferencia: editingTransaction.mesReferencia,
       });
@@ -277,9 +331,25 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
       handleCloseDeleteDialog();
     } catch (err) {
       console.error("Erro ao excluir transação:", err);
-      // Poderia mostrar um aviso aqui se quisesse
     }
   };
+
+  // Obter categorias baseadas no tipo
+  const getCategoriasParaTipo = () => {
+    if (loadingCategorias) {
+      return [];
+    }
+
+    if (typeof categorias === "object" && !Array.isArray(categorias)) {
+      return formData.tipo === "entrada"
+        ? categorias.entrada || []
+        : categorias.saida || [];
+    }
+
+    return categorias;
+  };
+
+  const categoriasDisponiveis = getCategoriasParaTipo();
 
   return (
     <Box>
@@ -470,7 +540,7 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
             InputLabelProps={{ shrink: true }}
           />
 
-          <FormControl fullWidth margin="dense">
+          <FormControl fullWidth margin="dense" disabled={loadingCategorias}>
             <InputLabel>Categoria</InputLabel>
             <Select
               name="categoria"
@@ -478,11 +548,20 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
               onChange={handleFormChange}
               required
             >
-              {categorias.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
+              {loadingCategorias ? (
+                <MenuItem disabled>
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  Carregando categorias...
                 </MenuItem>
-              ))}
+              ) : categoriasDisponiveis.length > 0 ? (
+                categoriasDisponiveis.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>Nenhuma categoria disponível</MenuItem>
+              )}
             </Select>
           </FormControl>
         </DialogContent>
@@ -492,6 +571,7 @@ const TransactionList = ({ transactions, isMonthClosed }) => {
             onClick={handleUpdateTransaction}
             variant="contained"
             color="primary"
+            disabled={loadingCategorias}
           >
             Salvar Alterações
           </Button>
